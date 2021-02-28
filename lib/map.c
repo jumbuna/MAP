@@ -1,4 +1,5 @@
 #include "../include/map.h"
+#include "allocator/allocator.h"
 #include <stdlib.h>
 
 typedef struct Map MAP;
@@ -7,31 +8,33 @@ typedef struct Entry {
     struct Entry *next, **prev;
 } ENTRY;
 
-MAP *mapcreate(limit, hashfunction, compare)
+MAP *mapcreate(limit, hashfunction, compare, typesize)
 int limit;
 hasher hashfunction;
 comparator compare;
+size_t typesize;
 {
     MAP *new;
     if((new = (MAP *) calloc(1, sizeof(ENTRY*)*limit + sizeof(MAP)))) {
         *((int *)(new)) = limit;
         new->comparisonfun = compare;
         new->hashfunction = hashfunction;
+        ((size_t *)(((int *) new)+2))[2] = (size_t) allocatorcreate(sizeof(ENTRY)+typesize);
     }
     return new;
 }
 
-void *mapentrycreate(unsigned long sz) {
+void *mapentrycreate(MAP *m) {
     ENTRY *e;
-    if(!(e = calloc(1, sizeof(ENTRY)+sz))) {
+    if((e = allocatorcalloc((struct Allocator *) m->alloc) )) {
         e++;
     }
     return e;
 }
 
-void mapentryfree(void *p) {
+void mapentryfree(MAP *m, void *p) {
     ENTRY *e = ((ENTRY*)(p)-1);
-    free(e);
+    allocatorfree((struct Allocator *) m->alloc ,e);
 }
 
 void mapaddentry(MAP *m, void *i) {
