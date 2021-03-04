@@ -24,7 +24,7 @@ size_t typesize;
     return new;
 }
 
-void *mapentrycreate(MAP *m) {
+void *mapmalloc(MAP *m) {
     ENTRY *e;
     if((e = allocatorcalloc((struct Allocator *) m->alloc) )) {
         e++;
@@ -32,12 +32,12 @@ void *mapentrycreate(MAP *m) {
     return e;
 }
 
-void mapentryfree(MAP *m, void *p) {
+void mapfree(MAP *m, void *p) {
     ENTRY *e = ((ENTRY*)(p)-1);
     allocatorfree((struct Allocator *) m->alloc ,e);
 }
 
-void mapaddentry(MAP *m, void *i) {
+void mapadd(MAP *m, void *i) {
     ENTRY *e = ((ENTRY *)(i))-1;
     ENTRY **p, *temp;
     p = (ENTRY**) &(m->table)[(*m->hashfunction)(i)% m->limit];
@@ -51,7 +51,7 @@ void mapaddentry(MAP *m, void *i) {
     m->size++;
 }
 
-void *mapfindentry(MAP *m, void *p) {
+void *mapfind(MAP *m, void *p) {
     ENTRY *e = ((ENTRY *) p)-1;
     ENTRY *ti = (m->table)[(*m->hashfunction)(p) % m->limit];
     while(ti) {
@@ -64,7 +64,7 @@ void *mapfindentry(MAP *m, void *p) {
 
 }
 
-void *mapnextentry(MAP *m, void *p) {
+void *mapnext(MAP *m, void *p) {
     ENTRY *e = (((ENTRY *) p)-1)->next;
     while(e) {
         if((*m->comparisonfun)(e+1, p) == 0) {
@@ -75,7 +75,7 @@ void *mapnextentry(MAP *m, void *p) {
     return 0;
 }
 
-void mapremoveentry(struct Map *m, void *p) {
+void mapremove(struct Map *m, void *p) {
     ENTRY *e = ((ENTRY *) p)-1;
     *(e->prev) = e->next;
     if(e->next) {
